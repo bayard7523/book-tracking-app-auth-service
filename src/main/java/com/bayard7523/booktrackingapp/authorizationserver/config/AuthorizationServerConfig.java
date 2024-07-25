@@ -12,10 +12,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+
+import java.util.List;
+
+import static org.springframework.security.oauth2.core.AuthorizationGrantType.*;
 
 @RequiredArgsConstructor
 @Configuration(proxyBeanMethods = false)
@@ -33,6 +42,22 @@ public class AuthorizationServerConfig {
 		);
 
 		return http.build();
+	}
+
+	@Bean
+	public RegisteredClientRepository registeredClientRepository() {
+		return new InMemoryRegisteredClientRepository(
+				RegisteredClient.withId("test-client-id")
+						.clientName("Test Client")
+						.clientId("test-client")
+						.clientSecret("{noop}test-client")
+						.redirectUri("http://localhost:5000/code")
+						.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+						.authorizationGrantTypes(authorizationGrantTypes ->
+								authorizationGrantTypes
+										.addAll(List.of(CLIENT_CREDENTIALS, AUTHORIZATION_CODE, REFRESH_TOKEN)))
+						.build()
+		);
 	}
 
 	@Bean
